@@ -7,6 +7,7 @@ using Player;
 public class Monster : MonoBehaviour
 {
     public LookAtIK lookAtIK;
+    public Animator anim;
     public bool brainless = false;
     public bool ChasingPlayer = false;
     public BehaviorTree behaviorTree;
@@ -22,6 +23,11 @@ public class Monster : MonoBehaviour
 
     public float attackCooldown = 3f;
     private float attackTimer = 0f;
+
+    public bool CanAttack()
+    {
+        return (attackTimer > attackCooldown);
+    }
 
     private void OnEnable()
     {
@@ -66,8 +72,10 @@ public class Monster : MonoBehaviour
         {
             if (attackTimer > attackCooldown)
             {
+                //Damage
+                Debug.Log("Monster attacking");
                 PlayerHealth health = other.GetComponent<PlayerHealth>();
-                health.Damage();
+                anim.SetTrigger("Attack");
                 attackTimer = 0;
             }
         }

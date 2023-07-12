@@ -1,2 +1,0 @@
-# horror game scripts
- 

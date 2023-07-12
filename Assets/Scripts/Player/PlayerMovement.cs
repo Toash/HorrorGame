@@ -1,15 +1,19 @@
 using UnityEngine;
 using Sirenix.OdinInspector;
+using DG.Tweening;
 
 namespace Player
 {
 	[RequireComponent(typeof(CharacterController))]
 	public class PlayerMovement : MonoBehaviour
 	{
+		public CameraRoot cameraRoot;
+		[Title("Keybinds",titleAlignment: TitleAlignments.Centered)]
 		public KeyCode sprintKey = KeyCode.LeftShift;
 		public KeyCode crouchKey = KeyCode.LeftControl;
 		public KeyCode proneKey = KeyCode.Z;
 
+		[Title("Stamina", titleAlignment: TitleAlignments.Centered)]
 		public float maxStamina = 100f;
 		public float currentStamina;
 		public float staminaRechargeCooldown = 2f;
@@ -17,15 +21,29 @@ namespace Player
 		public float staminaDegenSpeed = 20f;
 
 
-		public float crouchSpeed = 4;
-		public float crouchHeight = .35f;
+		[Title("Changing level stuff", titleAlignment: TitleAlignments.Centered)]
+		[Tooltip("Time it takes char controller to get back up from crouching")]
+		public float charControllBackUpSpeed = .5f;
+		public float charControllerCrouchSpeed = 1.5f;
+		[Tooltip("How far to crouch down")]
+		public float charControllerCrouchLength = .35f;
 
+		//Camera
+		//---------------------------------------------------------------------------------------------------
+		public float cameraRootCrouchLowerSpeed = 1;
+		public float cameraRootBackUpSpeed = .5f;
+		public float cameraRootCrouchLowerLength = 1;
+
+		//---------------------------------------------------------------------------------------------------
+
+		[Title("Stats", titleAlignment: TitleAlignments.Centered)]
 		public float jumpHeight = 2;
 		public float speed = 3;
 		public float gravityMultiplier = 2;
+		public float crouchSpeedMultipler = .5f;
+		public float sprintSpeedMultiplier = 2;
 
-		public float sprintMultiplier = 2;
-
+		[Title("Checks", titleAlignment: TitleAlignments.Centered)]
 		public Transform headCheck;
 		public float headCheckRadius = .4f;
 		public LayerMask headMask;
@@ -34,6 +52,8 @@ namespace Player
 		public float groundCheckRadius = .4f;
 		public LayerMask groundMask;
 
+		//private
+		//---------------------------------------
 		private CharacterController charControl;
 
 		private Vector3 playerGravityVelocity;
@@ -43,7 +63,16 @@ namespace Player
 		private bool proning = false;
 
 		private bool freeze = false;
-		private Vector3 scaleDestination = new Vector3(1,1,1);
+
+		private float charControllerHeightDestination;
+		private Vector3 cameraRootDestination;
+
+		// Initial variables to cache
+		//---------------------------------------------------------------------------
+		private float initialCharControllerHeight;
+		private Vector3 initialLocalCameraRootPos;
+		private float initialSpeedMultipler;
+		//---------------------------------------------------------------------------
 
 		private float staminaCooldownTimer = 0;
 
@@ -56,8 +85,15 @@ namespace Player
 		{
 			charControl = GetComponent<CharacterController>();
 			currentStamina = maxStamina;
+
+			//cache values
+			//---------------------------------------------------------------------------
+			initialCharControllerHeight = charControl.height;
+			initialLocalCameraRootPos = cameraRoot.transform.localPosition;
+			initialSpeedMultipler = speedMultiplier;
+			//---------------------------------------------------------------------------
 		}
-        private void OnEnable()
+		private void OnEnable()
         {
 			PlayerSingleton.instance.pausing.Pause += FreezeMovement;
 			PlayerSingleton.instance.pausing.Unpause += UnfreezeMovement;
@@ -75,9 +111,11 @@ namespace Player
 				HandleSpeedMultiplier();
 				HandleGravity();
 				HandleMovement();
-				HandleScaling();
-				JumpLogic();
+				//JumpLogic();
+
 				CrouchLogic();
+				HandleCameraRootPos();
+				HandleCharControlHeight();
 
 				staminaCooldownTimer += Time.deltaTime;
 				if(staminaCooldownTimer > staminaRechargeCooldown)
@@ -96,18 +134,20 @@ namespace Player
 		{
 			if (crouching)
 			{
-				//crouch
 				this.crouching = true;
-				scaleDestination = new Vector3(1, crouchHeight, 1);	
+				speedMultiplier = .5f;
+				//DOTween.To(() => charControl.height, x => charControl.height = x, charControllerCrouchHeight, charControllerCrouchSpeed);
+				//cameraRoot.MoveRootTowardsPos(cameraRoot.initialCameraLocalRootPos - new Vector3(0,cameraRootCrouchLowerLength,0), cameraRootCrouchLowerSpeed);
 			}
 			else
 			{
-				//uncrouch, cant uncrouch if stuff above head.
 				if (!Physics.CheckSphere(headCheck.position, headCheckRadius, headMask, QueryTriggerInteraction.Ignore))
                 {
 					this.crouching = false;
-					scaleDestination = new Vector3(1, 1, 1);
+					//DOTween.To(() => charControl.height, x => charControl.height = x, initialCharControllerHeight, charControllerCrouchSpeed);
+					//cameraRoot.MoveRootTowardsPos(cameraRoot.initialCameraLocalRootPos, cameraRootBackUpSpeed);
 				}
+				Debug.Log("Stuff is above head, cannot uncrouch.");
 			}
 			
 		}
@@ -124,10 +164,6 @@ namespace Player
 			}
 		}
 
-		private void HandleScaling()
-        {
-			transform.localScale = Vector3.Lerp(transform.localScale, scaleDestination, crouchSpeed * Time.deltaTime); ;
-		}
 	
 		private void Prone(bool proning)
         {
@@ -194,15 +230,20 @@ namespace Player
 		}
 		private void HandleSpeedMultiplier()
         {
-            if (Input.GetKey(sprintKey) && HasStamina())
+
+            if (Input.GetKey(sprintKey) && HasStamina() && !crouching)
             {
-				speedMultiplier = sprintMultiplier;
+				speedMultiplier = sprintSpeedMultiplier;
 				DegenStamina();
 
             }
+			else if (crouching)
+            {
+				speedMultiplier = crouchSpeedMultipler;
+            }
             else
             {
-				speedMultiplier = 1;
+				speedMultiplier = initialSpeedMultipler;
             }
         }
 
@@ -238,6 +279,30 @@ namespace Player
 			freeze = false;
         }
 		//-----------------------------------------------------------------------------------
+
+		private void HandleCharControlHeight()
+        {
+            if (crouching)
+            {
+				charControl.height = Mathf.Lerp(charControl.height, initialCharControllerHeight - charControllerCrouchLength, charControllerCrouchSpeed * Time.deltaTime);
+            }
+            else
+            {
+				charControl.height = Mathf.Lerp(charControl.height, initialCharControllerHeight, charControllBackUpSpeed * Time.deltaTime);
+            }
+        }
+		private void HandleCameraRootPos()
+        {
+            if (crouching)
+            {
+				cameraRoot.transform.localPosition = Vector3.Lerp(cameraRoot.transform.localPosition, initialLocalCameraRootPos - new Vector3(0,cameraRootCrouchLowerLength,0), cameraRootCrouchLowerSpeed*Time.deltaTime);
+			}
+            else
+            {
+				cameraRoot.transform.localPosition = Vector3.Lerp(cameraRoot.transform.localPosition, initialLocalCameraRootPos, cameraRootBackUpSpeed*Time.deltaTime);
+			}
+
+        }
 	}
 }
 

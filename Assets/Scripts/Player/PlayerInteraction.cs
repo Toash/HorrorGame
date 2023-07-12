@@ -15,7 +15,16 @@ public class PlayerInteraction : MonoBehaviour
     public float interactDistance = 3f;
     public LayerMask interactMask;
 
+
+    //Hand graphics
+    //-----------------------------------------------
     public Transform rightHandTarget;
+    public float handInteractionGoToSpeed = .5f;
+    public float handInteractTime = .5f;
+    public float handInteractGoBackSpeed = .35f;
+    //-----------------------------------------------
+
+
     [ReadOnly]
     public Interactable currentInteractable;
 
@@ -68,9 +77,9 @@ public class PlayerInteraction : MonoBehaviour
 
     private IEnumerator moveRightHandTarget(Vector3 pos)
     {
-        rightHandTarget.DOMove(pos, 1, false);
-        yield return new WaitForSeconds(.6f);
-        rightHandTarget.DOLocalMove(rightHandInitialPos, 1, false);
+        rightHandTarget.DOMove(pos, handInteractionGoToSpeed, false);
+        yield return new WaitForSeconds(handInteractTime);
+        rightHandTarget.DOLocalMove(rightHandInitialPos, handInteractGoBackSpeed, false);
     }
 
     private void HadInteractableNowDont()
