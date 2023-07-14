@@ -1,10 +1,14 @@
+using System;
 using UnityEngine;
 
 namespace Player
 {
 	public class PlayerCamera : MonoBehaviour
 	{
+		public KeyCode zoomKey = KeyCode.Mouse1;
 		public float sensitivity = 2;
+		public float zoomAmount;
+		public float zoomSpeed;
 		public Camera cam;
 		public GameObject holder;
 		public Transform playerTransform;
@@ -27,17 +31,16 @@ namespace Player
 		private Vector3 destination;
 		private Vector3 rotationDestination;
 		private Vector3 initialPosition;
+		private float initialZoom;
+		private float zoomDestination;
 
-		private bool freeze = false;
-		public Camera getCameraRef()
-		{
-			return cam;
-		}
+		private bool freeze = false;	
 
 		void Awake()
 		{
 			Cursor.lockState = CursorLockMode.Locked;
 			initialPosition = transform.position;
+			initialZoom = cam.fieldOfView;
 		}
         private void Start()
         {
@@ -58,9 +61,22 @@ namespace Player
 				cameraRotation();
 				leanBehaviour();
 				LerpToDestination();
-				
+				CameraZooming();
 			}
 		}
+
+        private void CameraZooming()
+        {
+            if (Input.GetKey(zoomKey))
+            {
+				zoomDestination = initialZoom - zoomAmount;
+            }
+            else
+            {
+				zoomDestination = initialZoom;
+            }
+			cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, zoomDestination, zoomSpeed * Time.deltaTime);
+        }
 
         private void OnDrawGizmos()
         {

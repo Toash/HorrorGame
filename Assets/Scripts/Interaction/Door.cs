@@ -39,10 +39,17 @@ public class Door : Interactable
         {
             col.enabled = true;
         }
+        if (closed)
+        {
+            this.InteractText = "Open";
+        }
+        else
+        {
+            this.InteractText = "Close";
+        }
     }
     public override void Interact()
     {
-        base.Interact();
         if (closed)
         {
             Open();
@@ -63,6 +70,7 @@ public class Door : Interactable
         PlayClip(openSound);
         closed = false;
         enemyBlockCol.enabled = false;
+        
     }
 
     public void Close()

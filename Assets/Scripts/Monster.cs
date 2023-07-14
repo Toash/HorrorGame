@@ -1,4 +1,6 @@
+using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 using RootMotion.FinalIK;
 using BehaviorDesigner.Runtime;
 using Audio;
@@ -6,8 +8,10 @@ using Player;
 
 public class Monster : MonoBehaviour
 {
+    public float OpeningDoorTime = 2;
     public LookAtIK lookAtIK;
     public Animator anim;
+    public NavMeshAgent agent;
     public bool brainless = false;
     public bool ChasingPlayer = false;
     public BehaviorTree behaviorTree;
@@ -43,6 +47,8 @@ public class Monster : MonoBehaviour
 
     private void Update()
     {
+        anim.SetFloat("Speed", agent.velocity.magnitude);
+        //Debug.Log(agent.velocity.magnitude);
         //Look at player camera
         lookAtIK.solver.IKPosition = PlayerSingleton.instance.cam.cam.transform.position;
 
@@ -88,7 +94,7 @@ public class Monster : MonoBehaviour
         localSource.clip = scarySounds[index];
         localSource.Play();
     }
-
+    
     //States
     // -----------------------------------------------------------
     private void PatrolStart()

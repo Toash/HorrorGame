@@ -5,7 +5,7 @@ using BehaviorDesigner.Runtime.Tasks;
 
 public class OpenDoor : Action
 {
-
+    public Monster monster;
     public Door nearestDoor;
 
     public float DoorSearchRadius = 3;
@@ -17,10 +17,12 @@ public class OpenDoor : Action
     //Run only once
     public override void OnAwake()
     {
+        base.OnAwake();
         agent = GetComponent<NavMeshAgent>();
     }
     public override void OnStart()
     {
+        base.OnStart();
         nearestDoor = lookForDoor();
         agent.isStopped = true;
         timer = 0;

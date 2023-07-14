@@ -1,8 +1,17 @@
 using UnityEngine;
+using Player;
 using Sirenix.OdinInspector;
 
 public abstract class Interactable : MonoBehaviour
 {
+    
+    public enum InteractType
+    {
+        Click,
+        Hold,
+        Persistent //handle unselecting manually
+    }
+    public InteractType interactType;
     public string InteractText;
     private bool touching;
 
@@ -15,18 +24,23 @@ public abstract class Interactable : MonoBehaviour
 
     public virtual void Update()
     {
+        if(interactType == InteractType.Persistent)
+        {
+            if (Input.GetKeyUp(PlayerSingleton.instance.interact.interactKey))
+            {
+                PlayerSingleton.instance.interact.RemoveCurrentInteractable();
+            }
+        }
 
     }
-    public virtual void Interact()
-    {
-        Debug.Log("interacting");
-    }
+    public abstract void Interact();
 
-    public void Touching()
+
+    public virtual void LookingAt()
     {
         touching = true;
     }
-    public void Nottouching()
+    public virtual void NotLookingAt()
     {
         touching = false;
     }

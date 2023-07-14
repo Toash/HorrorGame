@@ -5,5 +5,8 @@ using UnityEngine;
 /// </summary>
 public class Generator : Interactable
 {
-
+    public override void Interact()
+    {
+        throw new System.NotImplementedException();
+    }
 }
