@@ -35,11 +35,12 @@ public class NoteManager : MonoBehaviour
 
     public void HideNotes()
     {
+
         noteObject.SetActive(false);
         
         if (notesShowing)
         {
-            
+            Player.PlayerSingleton.instance.movement.Resume();
             //audioSource.clip = nodeCloseSound;
             //audioSource.Play();
         }
@@ -50,6 +51,7 @@ public class NoteManager : MonoBehaviour
     {
         if (!notesShowing)
         {
+            Player.PlayerSingleton.instance.movement.Stop();
             noteText.text = note;
             noteObject.SetActive(true);
             audioSource.clip = nodeOpenSound;

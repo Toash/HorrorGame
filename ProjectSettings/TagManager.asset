@@ -7,6 +7,7 @@ TagManager:
   - Hands
   - EnemyBlock
   - HidingSpot
+  - PlayerStop
   layers:
   - Default
   - TransparentFX
@@ -20,9 +21,9 @@ TagManager:
   - PlayerCantSee
   - Hands
   - PostProcessing
-  - 
-  - 
-  - 
+  - PlayerStopSensor
+  - PlayerStop
+  - Glimmer
   - 
   - 
   - 

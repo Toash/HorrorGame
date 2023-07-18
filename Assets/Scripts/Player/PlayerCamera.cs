@@ -46,6 +46,9 @@ namespace Player
         {
 			PlayerSingleton.instance.pausing.Pause += FreezeCameraMovement;
 			PlayerSingleton.instance.pausing.Unpause += UnfreezeCameraMovement;
+
+			//Set innitial rotatino to match parent obnject
+			horizontalRotation = playerTransform.parent.rotation.y;
 		}
 
         private void OnDisable()

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 using System.Collections;
 using TMPro;
 using Sirenix.OdinInspector;
@@ -9,9 +10,21 @@ using DG.Tweening;
 /// </summary>
 public class PlayerInteraction : MonoBehaviour
 {
-    public KeyCode interactKey = KeyCode.Mouse0;
+    [Title("Pickups")]
+    public UnityEvent CarryingSomethingButTryingToPickSomethingElseUp;
+
     [ReadOnly]
-    public bool CarryingSomething;
+    public PickupSO PickupInHand = null;
+    public Transform HoldPoint;
+    public Transform DropPoint;
+    public KeyCode dropKey = KeyCode.G;
+    [ReadOnly,ShowInInspector]
+    public bool CarryingSomething { get { return PickupInHand != null; } }
+
+
+    [Title("Interaction")]
+    public KeyCode interactKey = KeyCode.Mouse0;
+
     public Camera cam;
     public float interactDistance = 3f;
     public LayerMask interactMask;
@@ -28,6 +41,8 @@ public class PlayerInteraction : MonoBehaviour
 
     [ReadOnly]
     public Interactable currentInteractable;
+    [ReadOnly]
+    public bool interacting;
 
     private Vector3 rightHandInitialPos;
 
@@ -43,9 +58,9 @@ public class PlayerInteraction : MonoBehaviour
     {
         return currentInteractable.interactType == Interactable.InteractType.Persistent;
     }
-    private bool InteractableInRange()
+    private bool InteractableInPersistentRange()
     {
-        return (currentInteractable.transform.position - transform.position).magnitude < interactDistance;
+        return (currentInteractable.transform.position - transform.position).magnitude < currentInteractable.bailOutRange;
     }
 
     public void Start()
@@ -56,16 +71,65 @@ public class PlayerInteraction : MonoBehaviour
 
     public void Update()
     {
-        if(currentInteractable == null)
+        Interaction();
+        if(Input.GetKeyDown(dropKey) && CarryingSomething)
+        {
+            //Debug.Log("Dropping item");
+            DropPickup();
+        }
+
+    }
+
+    public void OnDrawGizmos()
+    {
+        Gizmos.DrawLine(cam.transform.position, cam.transform.forward * interactDistance);
+    }
+    public void EquipPickup(PickupSO pickup)
+    {
+        if (!CarryingSomething)
+        {
+            GameObject model = Instantiate(pickup.EquipModel, HoldPoint.position, HoldPoint.rotation, HoldPoint);
+            PickupInHand = pickup;
+        }
+        else
+        {
+            CarryingSomethingButTryingToPickSomethingElseUp.Invoke();
+        }
+    }
+    public void DropPickup()
+    {
+        if (!CarryingSomething) return;
+
+        Transform equipModel = HoldPoint.GetChild(0);
+        Destroy(equipModel.gameObject);
+
+        GameObject pickUp = Instantiate(PickupInHand.PickupObject,DropPoint.position,Quaternion.identity);
+        PickupInHand = null;
+
+    }
+    public void RemoveCurrentInteractable()
+    {
+        if(currentInteractable != null)
+        {
+            currentInteractable.NotLookingAt();
+            currentInteractable = null;
+            interacting = false;
+        }
+
+    }
+    private void Interaction()
+    {
+        if (currentInteractable == null)
         {
             moveRightHandTargetBack();
         }
         RaycastHit hit;
-       if(Physics.Raycast(cam.transform.position,cam.transform.forward,out hit,interactDistance, interactMask, QueryTriggerInteraction.Collide))
+        if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, interactDistance, interactMask, QueryTriggerInteraction.Collide))
         {
             Interactable interactable = hit.transform.GetComponent<Interactable>();
             if (interactable == null) interactable = hit.transform.GetComponentInParent<Interactable>();
-            if(interactable != null)
+
+            if (interactable != null)
             {
                 currentInteractable = interactable;
                 currentInteractable.LookingAt();
@@ -76,13 +140,13 @@ public class PlayerInteraction : MonoBehaviour
                 HadInteractableNowDont();
             }
         }
-       //Not hitting anythign but still have interactable
+        //Not hitting anythign but still have interactable
         else if (currentInteractable != null)
         {
             HadInteractableNowDont();
         }
 
-       if(currentInteractable != null)
+        if (currentInteractable != null)
         {
             if (isClick())
             {
@@ -93,6 +157,7 @@ public class PlayerInteraction : MonoBehaviour
                         StartCoroutine(moveRightHandTarget(currentInteractable.interactPoint.position));
                     }
                     currentInteractable.Interact();
+                    interacting = true;
                 }
                 return;
             }
@@ -105,6 +170,7 @@ public class PlayerInteraction : MonoBehaviour
                         moveRightHandTargetToPos(currentInteractable.interactPoint.position);
                     }
                     currentInteractable.Interact();
+                    interacting = true;
                 }
                 else
                 {
@@ -113,21 +179,6 @@ public class PlayerInteraction : MonoBehaviour
 
             }
         }
-
-    }
-
-    public void OnDrawGizmos()
-    {
-        Gizmos.DrawLine(cam.transform.position, cam.transform.forward * interactDistance);
-    }
-    public void RemoveCurrentInteractable()
-    {
-        if(currentInteractable != null)
-        {
-            currentInteractable.NotLookingAt();
-            currentInteractable = null;
-        }
-
     }
 
     private IEnumerator moveRightHandTarget(Vector3 pos)
@@ -148,7 +199,9 @@ public class PlayerInteraction : MonoBehaviour
 
     private void HadInteractableNowDont()
     {
-        if (currentInteractable.interactType == Interactable.InteractType.Persistent && InteractableInRange()) return;
+        if (currentInteractable.interactType == Interactable.InteractType.Persistent && InteractableInPersistentRange() && interacting) return;
         RemoveCurrentInteractable();
     }
+
+
 }

@@ -60,12 +60,19 @@ namespace Player
 		private float speedMultiplier = 1;
 		[ShowInInspector, ReadOnly]
 		private bool crouching = false;
+		[ReadOnly]
+		public bool moving;
+		[ReadOnly]
+		public bool sprinting;
 		private bool proning = false;
 
 		private bool freeze = false;
+		[ShowInInspector,ReadOnly]
+		private bool stopMovement = false;
 
 		private float charControllerHeightDestination;
 		private Vector3 cameraRootDestination;
+		private float uncrouchMoveUpHeight; // prevents clipping through floor
 
 		// Initial variables to cache
 		//---------------------------------------------------------------------------
@@ -98,6 +105,10 @@ namespace Player
 			PlayerSingleton.instance.pausing.Pause += FreezeMovement;
 			PlayerSingleton.instance.pausing.Unpause += UnfreezeMovement;
 		}
+        private void Start()
+        {
+			uncrouchMoveUpHeight = (initialCharControllerHeight - charControllerCrouchLength) + (charControllerCrouchLength * .5f);
+        }
         private void OnDisable()
         {
 			PlayerSingleton.instance.pausing.Pause -= FreezeMovement;
@@ -111,11 +122,11 @@ namespace Player
 				HandleSpeedMultiplier();
 				HandleGravity();
 				HandleMovement();
-				//JumpLogic();
-
+				JumpLogic();
 				CrouchLogic();
 				HandleCameraRootPos();
 				HandleCharControlHeight();
+
 
 				staminaCooldownTimer += Time.deltaTime;
 				if(staminaCooldownTimer > staminaRechargeCooldown)
@@ -144,6 +155,7 @@ namespace Player
 				if (!Physics.CheckSphere(headCheck.position, headCheckRadius, headMask, QueryTriggerInteraction.Ignore))
                 {
 					this.crouching = false;
+					
 					//DOTween.To(() => charControl.height, x => charControl.height = x, initialCharControllerHeight, charControllerCrouchSpeed);
 					//cameraRoot.MoveRootTowardsPos(cameraRoot.initialCameraLocalRootPos, cameraRootBackUpSpeed);
 				}
@@ -197,7 +209,7 @@ namespace Player
 		}
 		private void JumpLogic()
         {
-			if (isGrounded())
+			if (isGrounded() && !crouching && !proning)
 			{
 				if (Input.GetButtonDown("Jump"))
 				{
@@ -214,7 +226,19 @@ namespace Player
 		}
 		private void HandleMovement()
         {
-			charControl.Move(NormalizedMoveVector() * speed * speedMultiplier * Time.deltaTime);
+            if (!stopMovement)
+            {
+				charControl.Move(NormalizedMoveVector() * speed * speedMultiplier * Time.deltaTime);
+				if (charControl.velocity.magnitude > 0.01f)
+                {
+					moving = true;
+                }
+                else
+                {
+					moving = false;
+                }
+			}
+				
 		}
 		private void HandleGravity()
 		{
@@ -233,20 +257,49 @@ namespace Player
 
             if (Input.GetKey(sprintKey) && HasStamina() && !crouching)
             {
-				speedMultiplier = sprintSpeedMultiplier;
-				DegenStamina();
-
+				Sprint();
             }
 			else if (crouching)
             {
 				speedMultiplier = crouchSpeedMultipler;
-            }
+				sprinting = false;
+			}
             else
             {
 				speedMultiplier = initialSpeedMultipler;
-            }
+				sprinting = false;
+			}
         }
+		private void Sprint()
+        {
+			speedMultiplier = sprintSpeedMultiplier;
+			DegenStamina();
+			sprinting = true;
+		}
+		private void HandleCharControlHeight()
+		{
+			if (crouching)
+			{
+				charControl.height = Mathf.Lerp(charControl.height, initialCharControllerHeight - charControllerCrouchLength, charControllerCrouchSpeed * Time.deltaTime);
+			}
+			else
+			{
+				//uncrouch
+				charControl.height = Mathf.Lerp(charControl.height, initialCharControllerHeight, charControllBackUpSpeed * Time.deltaTime);
+			}
+		}
+		private void HandleCameraRootPos()
+		{
+			if (crouching)
+			{
+				cameraRoot.transform.localPosition = Vector3.Lerp(cameraRoot.transform.localPosition, initialLocalCameraRootPos - new Vector3(0, cameraRootCrouchLowerLength, 0), cameraRootCrouchLowerSpeed * Time.deltaTime);
+			}
+			else
+			{
+				cameraRoot.transform.localPosition = Vector3.Lerp(cameraRoot.transform.localPosition, initialLocalCameraRootPos, cameraRootBackUpSpeed * Time.deltaTime);
+			}
 
+		}
 
 		// stamina
 		//-----------------------------------------------------------------------------------
@@ -270,6 +323,15 @@ namespace Player
 
 		// Freeze / unfreeze movement
 		//-----------------------------------------------------------------------------------
+		public void Stop()
+        {
+			stopMovement = true;
+        }
+		public void Resume()
+        {
+			stopMovement = false;
+
+		}
 		private void FreezeMovement()
         {
 			freeze = true;
@@ -280,29 +342,7 @@ namespace Player
         }
 		//-----------------------------------------------------------------------------------
 
-		private void HandleCharControlHeight()
-        {
-            if (crouching)
-            {
-				charControl.height = Mathf.Lerp(charControl.height, initialCharControllerHeight - charControllerCrouchLength, charControllerCrouchSpeed * Time.deltaTime);
-            }
-            else
-            {
-				charControl.height = Mathf.Lerp(charControl.height, initialCharControllerHeight, charControllBackUpSpeed * Time.deltaTime);
-            }
-        }
-		private void HandleCameraRootPos()
-        {
-            if (crouching)
-            {
-				cameraRoot.transform.localPosition = Vector3.Lerp(cameraRoot.transform.localPosition, initialLocalCameraRootPos - new Vector3(0,cameraRootCrouchLowerLength,0), cameraRootCrouchLowerSpeed*Time.deltaTime);
-			}
-            else
-            {
-				cameraRoot.transform.localPosition = Vector3.Lerp(cameraRoot.transform.localPosition, initialLocalCameraRootPos, cameraRootBackUpSpeed*Time.deltaTime);
-			}
 
-        }
 	}
 }
 

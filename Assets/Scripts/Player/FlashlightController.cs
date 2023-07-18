@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class FlashlightController : MonoBehaviour
 {
+    public bool startEnabled = false;
     public GameObject flashLightTarget;
-
     public KeyCode flashLightKey = KeyCode.R;
     new public Light light;
     public Transform cameraTransform;
@@ -17,6 +17,14 @@ public class FlashlightController : MonoBehaviour
     private void Start()
     {
         targetRotation = cameraTransform.rotation;
+        if (startEnabled)
+        {
+            On();
+        }
+        else
+        {
+            Off();
+        }
     }
 
     private void Update()
