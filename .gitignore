@@ -3,6 +3,10 @@
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
 #
 /Assets/!AssetStore
+/Assets/Editor Default Resources
+/Assets/Resources
+/Assets/Plugins
+
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
