@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MonsterDamageTrigger : MonoBehaviour
 {
-    public Monster monster;
+    public Killer monster;
     public string parameterName = "RightHandEnabler";
     public float HitCooldown = .4f;
 

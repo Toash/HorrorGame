@@ -59,7 +59,7 @@ namespace Player
 		private Vector3 playerGravityVelocity;
 		private float speedMultiplier = 1;
 		[ShowInInspector, ReadOnly]
-		private bool crouching = false;
+		public bool crouching = false;
 		[ReadOnly]
 		public bool moving;
 		[ReadOnly]

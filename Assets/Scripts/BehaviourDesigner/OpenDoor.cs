@@ -5,7 +5,7 @@ using BehaviorDesigner.Runtime.Tasks;
 
 public class OpenDoor : Action
 {
-    public Monster monster;
+    public Killer monster;
     public Door nearestDoor;
 
     public float DoorSearchRadius = 3;

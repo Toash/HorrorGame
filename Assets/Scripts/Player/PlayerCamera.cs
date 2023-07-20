@@ -105,7 +105,6 @@ namespace Player
 			// Vertical camera rotation
 			verticalRotation -= (Input.GetAxis("Mouse Y") * sensitivity);
 			verticalRotation = Mathf.Clamp(verticalRotation, -90f, 90f);
-
 		}
 
 		private void leanBehaviour()
