@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f312f005f1072ac4f96811ab5f5b4c42, type: 3}
   m_Name: Plier
   m_EditorClassIdentifier: 
-  model: {fileID: 3358569305652271012, guid: efff4bd0541dc09449c996b4ff2410cf, type: 3}
+  PickupObject: {fileID: 0}
+  EquipModel: {fileID: 0}

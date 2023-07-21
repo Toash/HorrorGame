@@ -8,8 +8,7 @@ public class NoteManager : MonoBehaviour
     public static NoteManager instance;
     public GameObject noteObject;
     public TMP_Text noteText;
-    public AudioSource audioSource;
-    public AudioClip nodeOpenSound;
+    public AudioSource openSound;
     //public AudioClip nodeCloseSound;
 
     private bool notesShowing = false;
@@ -54,8 +53,7 @@ public class NoteManager : MonoBehaviour
             Player.PlayerSingleton.instance.movement.Stop();
             noteText.text = note;
             noteObject.SetActive(true);
-            audioSource.clip = nodeOpenSound;
-            audioSource.Play();
+            openSound.Play();
         }
         notesShowing = true;
     }

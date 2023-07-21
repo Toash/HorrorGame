@@ -43,19 +43,19 @@ namespace Player
 		public float crouchSpeedMultipler = .5f;
 		public float sprintSpeedMultiplier = 2;
 
+		[Title("Audio")]
+		public AudioSource outOfBreathSound;
+
 		[Title("Checks", titleAlignment: TitleAlignments.Centered)]
 		public Transform headCheck;
 		public float headCheckRadius = .4f;
 		public LayerMask headMask;
-
 		public Transform groundCheck;
 		public float groundCheckRadius = .4f;
 		public LayerMask groundMask;
 
-		//private
-		//---------------------------------------
-		private CharacterController charControl;
 
+		private CharacterController charControl;
 		private Vector3 playerGravityVelocity;
 		private float speedMultiplier = 1;
 		[ShowInInspector, ReadOnly]
@@ -65,14 +65,9 @@ namespace Player
 		[ReadOnly]
 		public bool sprinting;
 		private bool proning = false;
-
 		private bool freeze = false;
 		[ShowInInspector,ReadOnly]
 		private bool stopMovement = false;
-
-		private float charControllerHeightDestination;
-		private Vector3 cameraRootDestination;
-		private float uncrouchMoveUpHeight; // prevents clipping through floor
 
 		// Initial variables to cache
 		//---------------------------------------------------------------------------
@@ -82,6 +77,8 @@ namespace Player
 		//---------------------------------------------------------------------------
 
 		private float staminaCooldownTimer = 0;
+		private float staminaOutOfBreathCooldown;
+		private float staminaOutOfBreathTimer;
 
 		public bool HasStamina()
         {
@@ -100,15 +97,16 @@ namespace Player
 			initialSpeedMultipler = speedMultiplier;
 			//---------------------------------------------------------------------------
 		}
-		private void OnEnable()
+        private void Start()
+        {
+			staminaOutOfBreathCooldown = staminaRechargeCooldown + .5f;
+
+		}
+        private void OnEnable()
         {
 			PlayerSingleton.instance.pausing.Pause += FreezeMovement;
 			PlayerSingleton.instance.pausing.Unpause += UnfreezeMovement;
 		}
-        private void Start()
-        {
-			uncrouchMoveUpHeight = (initialCharControllerHeight - charControllerCrouchLength) + (charControllerCrouchLength * .5f);
-        }
         private void OnDisable()
         {
 			PlayerSingleton.instance.pausing.Pause -= FreezeMovement;
@@ -129,9 +127,11 @@ namespace Player
 
 
 				staminaCooldownTimer += Time.deltaTime;
-				if(staminaCooldownTimer > staminaRechargeCooldown)
+				staminaOutOfBreathTimer += Time.deltaTime;
+				if (staminaCooldownTimer > staminaRechargeCooldown)
                 {
-					RegenStamina();
+					InstantlyRegenStamina();
+					//RegenStamina();
                 }
 
 			}
@@ -308,10 +308,22 @@ namespace Player
 			
 			currentStamina += (staminaRegenSpeed * Time.deltaTime);
         }
+
+		private void InstantlyRegenStamina()
+        {
+			currentStamina = maxStamina;
+        }
 		private void DegenStamina()
         {
 			currentStamina -= (staminaDegenSpeed * Time.deltaTime);
-			staminaCooldownTimer = 0;
+			if (currentStamina <= 0.01f && (staminaOutOfBreathTimer > staminaOutOfBreathCooldown))
+            {
+				outOfBreathSound.Play();
+				staminaOutOfBreathTimer = 0;
+			}
+
+			if (currentStamina >= 0.01f)
+				staminaCooldownTimer = 0;
 		}
 
 		private void ClampStamina()

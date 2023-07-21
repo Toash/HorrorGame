@@ -22,54 +22,66 @@ public class Killer : MonoBehaviour
 
     public State state = State.Patrol;
 
+    [Title("Stats")]
+    public float openingDoorTime = 2;
+    public float attackCooldown = 3f;
+
     [Title("Patrol")]
-    [Tooltip("Follows in top to bottom order")]
-    public GameObject[] PatrolPoints;
+    public float patrolSpeed = 1.5f;
+    [Tooltip("Follows in top to bottom order")]public GameObject[] PatrolPoints;
     [ShowInInspector, ReadOnly] private int currentPatrolIndex = 0;
 
-    [Title("Stats")]
+    [Title("Chase")]
+    public float chaseSpeed = 2;
+
+    [Title("Search")]
+    public float searchSpeed = 1.75f;
+
     [Title("Field of View")]
     [Range(0, 360)] public float ViewAngle = 160;
     public float ViewDistance = 10;
     public LayerMask playerMask;
     public LayerMask obstacleMask;
+    public float obstacleSpherecastRadius = .4f;
+
     [Title("Hearing")]
     public LayerMask soundMask;
 
-    public float OpeningDoorTime = 2;
-    public float attackCooldown = 3f;
-
     [Title("Sounds")]
     public AudioSource localSource;
+
     public AudioSource[] alertSounds;
+    public float alertSoundCooldown = 2f;
 
-
-    public AudioClip chaseMusic;
-    public AudioClip patrolMusic;
-    public AudioClip searchingMusic;
+    public AudioSource chaseMusic;
 
     public AudioClip[] scarySounds;
     public float scarySoundsDelay = 3f;
     public bool playScarySounds;
 
     [Title("References")]
-    [Tooltip("Raycasts will start from here")]
-    public Transform eyeTransform;
+
+    [Tooltip("Raycasts will start from here")] public Transform eyeTransform;
     public Animator anim;
     public NavMeshAgent agent;
     public LookAtIK lookAtIK;
 
     [Title("Debug")]
-    [ReadOnly]
-    public bool ChasingPlayer = false;
+    [ReadOnly] public bool ChasingPlayer = false;
 
-    private float attackTimer = 0f;
-    private float scarySoundTimer = 0f;
+
+    private float attackTimer = Mathf.Infinity;
+    private float scarySoundTimer = Mathf.Infinity;
+    private float alertSoundTimer = Mathf.Infinity;
 
     //Player tracking
     private Transform playerTrans;
     private Vector3 playerLastKnownLocation;
 
+    public bool CanPlayAlertSound()
+    {
+        return (alertSoundTimer > alertSoundCooldown);
+    }
     public bool CanAttack()
     {
         return (attackTimer > attackCooldown);
@@ -78,11 +90,14 @@ public class Killer : MonoBehaviour
     private void Start()
     {
         playerTrans = PlayerSingleton.instance.GetComponent<Transform>();
+        
     }
 
     private void Update()
     {
         UpdateTimers();
+
+        ControlChaseMusic();
 
         ScanForPlayer();
         ListenForSounds();
@@ -98,6 +113,8 @@ public class Killer : MonoBehaviour
             case State.Stop:
                 return;
             case State.Patrol:
+                agent.speed = patrolSpeed;
+
                 GoToCurrentPatrolPoint();
                 // Check if reach destination, if so, go to next destination
                 bool agentReachedPatrolPoint = agent.remainingDistance < .5f;
@@ -107,6 +124,9 @@ public class Killer : MonoBehaviour
                 }
                 break;
             case State.Chasing:
+                
+                agent.speed = chaseSpeed;
+
                 // Go towards player, if break los go to last seen position.
 
                 if (HasLOSWithPlayer())
@@ -124,6 +144,7 @@ public class Killer : MonoBehaviour
 
             // set last known player pos before calling this
             case State.Searching:
+                agent.speed = searchSpeed;
 
                 GoToLastKnownPlayerPos();
                 bool reachedLastKnownPlayerPos = agent.remainingDistance < .1f;
@@ -197,6 +218,7 @@ public class Killer : MonoBehaviour
     {
         scarySoundTimer += Time.deltaTime;
         attackTimer += Time.deltaTime;
+        alertSoundTimer += Time.deltaTime;
     }
 
     //Field of view
@@ -228,9 +250,11 @@ public class Killer : MonoBehaviour
                 {
                     //Check obstacles
                     //TODO: Spherecast
-                    if (!Physics.Raycast(eyeTransform.position, DirToPlayer(), DstToPlayer(), obstacleMask))
+                    Ray ray = new Ray(eyeTransform.position, DirToPlayer());
+                    if (!Physics.SphereCast(ray,obstacleSpherecastRadius, DstToPlayer(), obstacleMask,QueryTriggerInteraction.Collide))
                     {
                         //Debug.Log("Can see player!");
+                        PlayRandomAlertSound();
                         state = State.Chasing;
                     }
                 }
@@ -332,6 +356,8 @@ public class Killer : MonoBehaviour
         GizmosExtensions.DrawWireArc(this.eyeTransform.position, eyeTransform.forward, ViewAngle, ViewDistance);
         if (playerTrans != null)
             Gizmos.DrawLine(eyeTransform.position, new Vector3(playerTrans.position.x, eyeTransform.position.y, playerTrans.position.z));
+
+        
     }
 
     private bool ReachedDestination()
@@ -355,7 +381,23 @@ public class Killer : MonoBehaviour
     [Button]
     private void PlayRandomAlertSound()
     {
-        int i = Random.Range(0, alertSounds.Length);
-        alertSounds[i].Play();
+        if (CanPlayAlertSound())
+        {
+            int i = Random.Range(0, alertSounds.Length);
+            alertSounds[i].Play();
+            alertSoundTimer = 0;
+        }
+    }
+
+    private void ControlChaseMusic()
+    {
+        if (state == State.Chasing)
+        {
+            chaseMusic.volume = Mathf.Lerp(chaseMusic.volume, 1, Time.deltaTime * 5);
+        }
+        else
+        {
+            chaseMusic.volume = Mathf.Lerp(chaseMusic.volume, 0, Time.deltaTime * 2);
+        }
     }
 }

@@ -14,7 +14,7 @@ public class Pickup : Interactable
     private void OnCollisionEnter(Collision collision)
     {
         Debug.Log("Hit");
-        thud.Play();
+        thud?.Play();
     }
     public override void Interact()
     {

@@ -12,6 +12,8 @@ public class PlayerHealth : MonoBehaviour
     public Action PlayerTookDamage;
     public Action PlayerDied;
 
+    public AudioSource playerHurtSound;
+
     private void Start()
     {
         currentHealth = StartingHealth;
@@ -20,6 +22,8 @@ public class PlayerHealth : MonoBehaviour
     [Button]
     public void Damage(int amount)
     {
+        playerHurtSound.Play();
+
         PlayerTookDamage.Invoke();
         currentHealth -= amount;
         screenDamage.CurrentHealth = currentHealth;
