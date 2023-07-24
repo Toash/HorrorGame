@@ -1,9 +1,20 @@
 using UnityEngine;
+using UnityEngine.Events;
 using Sirenix.OdinInspector;
 
-public class FlashlightController : MonoBehaviour
+public class LighterController : MonoBehaviour
 {
-    public bool hasFlashlight;
+    [Title("Events")]
+    public UnityEvent OnEvent;
+    public UnityEvent OffEvent;
+
+    [Title("Stats")]
+    public bool hasFluid = true;
+    public float hasFluidRange = 6f;
+    public float hasFluidIntensity = .6f;
+    public float noFluidRange = 4;
+    public float noFluidIntensity = .45f;
+
     [Title("Flicker")]
     public float intensityRange;
     public float flickerSpeed = 5;
@@ -12,24 +23,17 @@ public class FlashlightController : MonoBehaviour
     private float maxIntensity;
 
     [Title("Other")]
+    public bool hasLighter;
     public bool startEnabled = false;
-    public GameObject flashLightTarget;
     public KeyCode flashLightKey = KeyCode.R;
     new public Light light;
-    public Transform cameraTransform;
-    public float rotationSpeed = 2f;
-    public AudioSource source;
-    public AudioClip onSound;
-    public AudioClip offSound;
-
-    private Quaternion targetRotation;
 
     private void Start()
     {
         RandomLightIntensity();
-        targetRotation = cameraTransform.rotation;
-        minIntensity = light.intensity - intensityRange;
-        maxIntensity = light.intensity + intensityRange;
+
+
+        targetIntensity = light.intensity;
         if (startEnabled)
         {
             On();
@@ -42,7 +46,7 @@ public class FlashlightController : MonoBehaviour
 
     private void Update()
     {
-        if (hasFlashlight)
+        if (hasLighter)
         {
             if (Input.GetKeyDown(flashLightKey))
             {
@@ -55,37 +59,48 @@ public class FlashlightController : MonoBehaviour
                     On();
                 }
             }
-            FlickerLight();
+            
         }
-
+        if(light.enabled == true)
+        {
+            if (hasFluid)
+            {
+                light.range = hasFluidRange;
+                minIntensity = hasFluidIntensity - intensityRange;
+                maxIntensity = hasFluidIntensity + intensityRange;
+            }
+            else
+            {
+                light.range = noFluidRange;
+                minIntensity = noFluidIntensity - intensityRange;
+                maxIntensity = noFluidIntensity + intensityRange;
+            }
+        }
     }
     private void LateUpdate()
     {
-        targetRotation = Quaternion.Lerp(targetRotation, cameraTransform.rotation, rotationSpeed * Time.deltaTime);
-
-        transform.rotation = targetRotation;
+        //minIntensity = light.intensity - intensityRange;
+        //maxIntensity = light.intensity + intensityRange;
+        FlickerLight();
     }
 
     public void ReceiveFlashlight()
     {
-        hasFlashlight = true;
+        hasLighter = true;
     }
 
-    private void PlaySound(AudioClip sound)
-    {
-        source.clip = sound;
-        source.Play();
-    }
 
     private void On()
     {
+        OnEvent.Invoke();
         light.enabled = true;
-        PlaySound(onSound);
+        
     }
     private void Off()
     {
+        OffEvent.Invoke();
         light.enabled = false;
-        PlaySound(offSound);
+        
     }
 
     private void FlickerLight()

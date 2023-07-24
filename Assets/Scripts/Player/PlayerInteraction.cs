@@ -10,6 +10,9 @@ using DG.Tweening;
 /// </summary>
 public class PlayerInteraction : MonoBehaviour
 {
+    [Title("Keybinds")]
+    public KeyCode dropKey = KeyCode.G;
+    public KeyCode useKey = KeyCode.F;
     [Title("Pickups")]
     public UnityEvent CarryingSomethingButTryingToPickSomethingElseUp;
 
@@ -17,7 +20,7 @@ public class PlayerInteraction : MonoBehaviour
     public PickupSO PickupInHand = null;
     public Transform HoldPoint;
     public Transform DropPoint;
-    public KeyCode dropKey = KeyCode.G;
+
     [ReadOnly,ShowInInspector]
     public bool CarryingSomething { get { return PickupInHand != null; } }
 
@@ -45,6 +48,7 @@ public class PlayerInteraction : MonoBehaviour
     public bool interacting;
 
     private Vector3 rightHandInitialPos;
+    private bool handMoving = false;
 
     private bool isClick()
     {
@@ -76,6 +80,16 @@ public class PlayerInteraction : MonoBehaviour
         {
             //Debug.Log("Dropping item");
             DropPickup();
+        }
+        if(CarryingSomething && PickupInHand.PickupObject.GetComponent<Useable>() != null)
+        {
+            if (Input.GetKeyDown(useKey))
+            {
+                //use it
+                PickupInHand.PickupObject.GetComponent<Useable>().Use();
+                //destroy the pickup in hand
+
+            }
         }
 
     }
@@ -119,10 +133,12 @@ public class PlayerInteraction : MonoBehaviour
     }
     private void Interaction()
     {
-        if (currentInteractable == null)
+
+        if (currentInteractable == null && !handMoving) 
         {
             moveRightHandTargetBack();
         }
+        
         RaycastHit hit;
         if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, interactDistance, interactMask, QueryTriggerInteraction.Collide))
         {
@@ -161,12 +177,13 @@ public class PlayerInteraction : MonoBehaviour
                 }
                 return;
             }
-            if (isHold() || isPersistent())
+            else if (isHold() || isPersistent())
             {
                 if (Input.GetKey(interactKey))
                 {
                     if (currentInteractable.interactPoint != null)
                     {
+
                         moveRightHandTargetToPos(currentInteractable.interactPoint.position);
                     }
                     currentInteractable.Interact();
@@ -184,8 +201,10 @@ public class PlayerInteraction : MonoBehaviour
     private IEnumerator moveRightHandTarget(Vector3 pos)
     {
         rightHandTarget.DOMove(pos, handInteractionGoToSpeed, false);
+        handMoving = true;
         yield return new WaitForSeconds(handInteractTime);
         rightHandTarget.DOLocalMove(rightHandInitialPos, handInteractGoBackSpeed, false);
+        handMoving = false ;
     }
 
     private void moveRightHandTargetToPos(Vector3 pos)

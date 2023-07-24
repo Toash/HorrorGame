@@ -37,6 +37,7 @@ namespace Player
 		//---------------------------------------------------------------------------------------------------
 
 		[Title("Stats", titleAlignment: TitleAlignments.Centered)]
+		public bool canJump;
 		public float jumpHeight = 2;
 		public float speed = 3;
 		public float gravityMultiplier = 2;
@@ -45,6 +46,8 @@ namespace Player
 
 		[Title("Audio")]
 		public AudioSource outOfBreathSound;
+		public GamingIsLove.Footsteps.Footstepper footStepper;
+		public float crouchingVolume = .1f;
 
 		[Title("Checks", titleAlignment: TitleAlignments.Centered)]
 		public Transform headCheck;
@@ -74,6 +77,7 @@ namespace Player
 		private float initialCharControllerHeight;
 		private Vector3 initialLocalCameraRootPos;
 		private float initialSpeedMultipler;
+		private float initialWalkLoudness;
 		//---------------------------------------------------------------------------
 
 		private float staminaCooldownTimer = 0;
@@ -95,6 +99,7 @@ namespace Player
 			initialCharControllerHeight = charControl.height;
 			initialLocalCameraRootPos = cameraRoot.transform.localPosition;
 			initialSpeedMultipler = speedMultiplier;
+			initialWalkLoudness = footStepper.walkVolume;
 			//---------------------------------------------------------------------------
 		}
         private void Start()
@@ -120,6 +125,8 @@ namespace Player
 				HandleSpeedMultiplier();
 				HandleGravity();
 				HandleMovement();
+				Debug.Log(new Vector2(charControl.velocity.x, charControl.velocity.z).magnitude);
+				footStepper.Speed = new Vector2(charControl.velocity.x, charControl.velocity.z);
 				JumpLogic();
 				CrouchLogic();
 				HandleCameraRootPos();
@@ -147,17 +154,14 @@ namespace Player
 			{
 				this.crouching = true;
 				speedMultiplier = .5f;
-				//DOTween.To(() => charControl.height, x => charControl.height = x, charControllerCrouchHeight, charControllerCrouchSpeed);
-				//cameraRoot.MoveRootTowardsPos(cameraRoot.initialCameraLocalRootPos - new Vector3(0,cameraRootCrouchLowerLength,0), cameraRootCrouchLowerSpeed);
+				footStepper.walkVolume = crouchingVolume;
 			}
 			else
 			{
 				if (!Physics.CheckSphere(headCheck.position, headCheckRadius, headMask, QueryTriggerInteraction.Ignore))
                 {
 					this.crouching = false;
-					
-					//DOTween.To(() => charControl.height, x => charControl.height = x, initialCharControllerHeight, charControllerCrouchSpeed);
-					//cameraRoot.MoveRootTowardsPos(cameraRoot.initialCameraLocalRootPos, cameraRootBackUpSpeed);
+					footStepper.walkVolume = initialWalkLoudness;
 				}
 				Debug.Log("Stuff is above head, cannot uncrouch.");
 			}
@@ -209,11 +213,14 @@ namespace Player
 		}
 		private void JumpLogic()
         {
-			if (isGrounded() && !crouching && !proning)
-			{
-				if (Input.GetButtonDown("Jump"))
+            if (canJump)
+            {
+				if (isGrounded() && !crouching && !proning)
 				{
-					Jump();
+					if (Input.GetButtonDown("Jump"))
+					{
+						Jump();
+					}
 				}
 			}
 		}

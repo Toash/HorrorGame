@@ -13,7 +13,7 @@ namespace Player
         public PlayerMovement movement;
         public PlayerCamera cam;
         public PlayerInteraction interact;
-        public FlashlightController flashlight;
+        public LighterController flashlight;
 
         private void Awake()
         {

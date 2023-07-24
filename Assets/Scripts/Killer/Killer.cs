@@ -11,6 +11,9 @@ using Sirenix.OdinInspector;
 /// </summary>
 public class Killer : MonoBehaviour
 {
+    public static Killer instance;
+
+
     public enum State
     {
         Stop,
@@ -37,6 +40,9 @@ public class Killer : MonoBehaviour
     [Title("Search")]
     public float searchSpeed = 1.75f;
 
+    [Title("Interacting")]
+    public LayerMask interactableMask;
+
     [Title("Field of View")]
     [Range(0, 360)] public float ViewAngle = 160;
     public float ViewDistance = 10;
@@ -49,11 +55,12 @@ public class Killer : MonoBehaviour
 
     [Title("Sounds")]
     public AudioSource localSource;
-
     public AudioSource[] alertSounds;
-    public float alertSoundCooldown = 2f;
-
+    public float alertSoundCooldown = 8f;
+    
     public AudioSource chaseMusic;
+    public float chaseMusicFadeInSpeed = 5f;
+    public float chaseMusicFadeOutSpeed = .15f;
 
     public AudioClip[] scarySounds;
     public float scarySoundsDelay = 3f;
@@ -87,6 +94,13 @@ public class Killer : MonoBehaviour
         return (attackTimer > attackCooldown);
     }
 
+    private void Awake()
+    {
+        if(instance == null)
+        {
+            instance = this;
+        }
+    }
     private void Start()
     {
         playerTrans = PlayerSingleton.instance.GetComponent<Transform>();
@@ -128,7 +142,7 @@ public class Killer : MonoBehaviour
                 agent.speed = chaseSpeed;
 
                 // Go towards player, if break los go to last seen position.
-
+                // maybe cast a circle, if player in it keep chasing regardless of los break.
                 if (HasLOSWithPlayer())
                 {
                     agent.SetDestination(playerTrans.position);
@@ -145,13 +159,13 @@ public class Killer : MonoBehaviour
             // set last known player pos before calling this
             case State.Searching:
                 agent.speed = searchSpeed;
-
                 GoToLastKnownPlayerPos();
-                bool reachedLastKnownPlayerPos = agent.remainingDistance < .1f;
+
                 if (ReachedDestination())
                 {
-                    Debug.Log("Stopping");
-                    StartCoroutine(Stop(2));
+                    anim.SetTrigger("LookAround");
+                    Stop(4);
+                    //Should cast a range to see if player is in it, if so, chase the player.
                     state = State.Patrol;
                 }
 
@@ -162,7 +176,11 @@ public class Killer : MonoBehaviour
                 break;
         }
     }
-    private IEnumerator Stop(float seconds)
+    public void Stop(float seconds)
+    {
+        StartCoroutine(IEStop(seconds));
+    }
+    private IEnumerator IEStop(float seconds)
     {
         agent.isStopped = true;
         yield return new WaitForSeconds(seconds);
@@ -220,6 +238,20 @@ public class Killer : MonoBehaviour
         attackTimer += Time.deltaTime;
         alertSoundTimer += Time.deltaTime;
     }
+    
+    //TODO: Optimize
+    [Button,PropertyOrder(-1)]
+    public void OpenNearestDoors()
+    {
+        Collider[] cols = Physics.OverlapSphere(transform.position, 3, interactableMask, QueryTriggerInteraction.Collide);
+        foreach(Collider col in cols)
+        {
+            if(col.GetComponentInParent<DraggableDoor>() != null)
+            {
+                col.GetComponentInParent<DraggableDoor>().OpenDoor();
+            }
+        }
+    }
 
     //Field of view
     //------------------------------------------------------------------
@@ -251,10 +283,10 @@ public class Killer : MonoBehaviour
                     //Check obstacles
                     //TODO: Spherecast
                     Ray ray = new Ray(eyeTransform.position, DirToPlayer());
-                    if (!Physics.SphereCast(ray,obstacleSpherecastRadius, DstToPlayer(), obstacleMask,QueryTriggerInteraction.Collide))
+                    if (!Physics.SphereCast(ray,obstacleSpherecastRadius, DstToPlayer(), obstacleMask,QueryTriggerInteraction.Ignore))
                     {
                         //Debug.Log("Can see player!");
-                        PlayRandomAlertSound();
+                        //PlayRandomAlertSound();
                         state = State.Chasing;
                     }
                 }
@@ -329,22 +361,42 @@ public class Killer : MonoBehaviour
 
     //States
     // -----------------------------------------------------------
-    private void PatrolStart()
+    
+    private void Wander(float distancePerTry, int tries)
     {
-        AudioManager.instance.FadeOutChaseAudio();
-        ChasingPlayer = false;
-        playScarySounds = false;
+        float currentDistance = distancePerTry;
+
+        //Get random direction and distance
+
+        var x = Random.Range(-1f, 1f);
+        var z = Random.Range(-1f, 1f);
+        Vector3 randomDir = new Vector3(x, 0, z).normalized;
+        RaycastHit hit;
+        if(Physics.Raycast(eyeTransform.position,randomDir,out hit, currentDistance, obstacleMask, QueryTriggerInteraction.Ignore))
+        {
+            //hit wall
+            // go to spot near wall
+            Debug.DrawLine(eyeTransform.position, hit.point,Color.green,5);
+            agent.SetDestination(hit.point);
+        }
+        else
+        {
+            //hit Nothing
+            //just go there then
+            Vector3 point = new Ray(eyeTransform.position, randomDir).GetPoint(currentDistance);
+            Debug.DrawLine(eyeTransform.position, point, Color.green, 5);
+            agent.SetDestination(point);
+        }
+
+        //Go there
+        //wait for some time
+        //repeat (if multiple tries)
+        
     }
-    private void ChaseStart()
+    [Button]
+    public void EnterChaseState()
     {
-        AudioManager.instance.FadeInChaseAudio();
-        ChasingPlayer = true;
-        playScarySounds = true;
-    }
-    private void SearchStart()
-    {
-        AudioManager.instance.FadeOutChaseAudio();
-        ChasingPlayer = false;
+        state = State.Chasing;
     }
     //------------------------------------------------------------------
     public void OnDrawGizmos()
@@ -393,11 +445,11 @@ public class Killer : MonoBehaviour
     {
         if (state == State.Chasing)
         {
-            chaseMusic.volume = Mathf.Lerp(chaseMusic.volume, 1, Time.deltaTime * 5);
+            chaseMusic.volume = Mathf.Lerp(chaseMusic.volume, 1, Time.deltaTime * chaseMusicFadeInSpeed);
         }
         else
         {
-            chaseMusic.volume = Mathf.Lerp(chaseMusic.volume, 0, Time.deltaTime * 2);
+            chaseMusic.volume = Mathf.Lerp(chaseMusic.volume, 0, Time.deltaTime * chaseMusicFadeOutSpeed);
         }
     }
 }

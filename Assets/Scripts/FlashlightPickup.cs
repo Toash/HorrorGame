@@ -10,8 +10,9 @@ public class FlashlightPickup : Pickup
         base.Interact();
         PlayerSingleton.instance.flashlight.ReceiveFlashlight();
     }
+
     public override void PickUp()
     {
-        Destroy(gameObject);
+        
     }
 }

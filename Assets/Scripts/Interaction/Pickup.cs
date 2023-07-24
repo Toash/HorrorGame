@@ -11,6 +11,7 @@ public class Pickup : Interactable
     public AudioSource thud;
     public Rigidbody rb;
 
+
     private void OnCollisionEnter(Collision collision)
     {
         Debug.Log("Hit");
@@ -20,11 +21,12 @@ public class Pickup : Interactable
     {
         base.Interact();
         PickUp();
-        Destroy(gameObject);
+        
     }
     public virtual void PickUp()
     {
         // Give pickup to player
         PlayerSingleton.instance.interact.EquipPickup(SO);
+        Destroy(gameObject);
     }
 }
