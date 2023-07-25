@@ -49,9 +49,16 @@ public abstract class Interactable : MonoBehaviour
         }
 
     }
+    public void ChangeInteractText(string text)
+    {
+        InteractText = text;
+    }
+    /// <summary>
+    /// Checks if player has required item in hand if applicable
+    /// </summary>
     public virtual void Interact()
     {
-        if (PlayerSingleton.instance.interact.PickupInHand != ItemRequirement) return;
+        if (RequiresItem && PlayerSingleton.instance.interact.PickupInHand != ItemRequirement) return;
         interactEvent?.Invoke();
     }
 

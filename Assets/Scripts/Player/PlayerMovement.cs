@@ -125,7 +125,6 @@ namespace Player
 				HandleSpeedMultiplier();
 				HandleGravity();
 				HandleMovement();
-				Debug.Log(new Vector2(charControl.velocity.x, charControl.velocity.z).magnitude);
 				footStepper.Speed = new Vector2(charControl.velocity.x, charControl.velocity.z);
 				JumpLogic();
 				CrouchLogic();

@@ -9,6 +9,7 @@ public class Lock : Interactable
     public UnityEvent TryUnlock;
     public bool locked = true;
     public Rigidbody rb;
+    
     //public PickupSO KeyToUnlock;
     //public float lockTryDelay;
     //private float lockTryTimer = 0;
@@ -26,26 +27,4 @@ public class Lock : Interactable
         rb.useGravity = true;
         locked = false;
     }
-    /*
-    public override void Update()
-    {
-        base.Update();
-        lockTryTimer += Time.deltaTime;
-
-        if (PlayerSingleton.instance.interact.PickupInHand == KeyToUnlock)
-        {
-            
-            Unlock();
-        }
-        else
-        {
-            if (lockTryTimer > lockTryDelay)
-            {
-                TryUnlock.Invoke();
-                lockTryTimer = 0;
-            }
-
-        }
-    }
-    */
 }

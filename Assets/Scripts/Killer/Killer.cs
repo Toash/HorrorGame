@@ -221,15 +221,18 @@ public class Killer : MonoBehaviour
     {
         SetIKToPlayerCam();
         anim.SetFloat("Speed", agent.velocity.magnitude);
+        float dest;
+        
         if (state == State.Chasing)
         {
-            lookAtIK.solver.IKPositionWeight = 1f;
+            dest = 1f;
         }
         else
         {
             //Dont look at player
-            lookAtIK.solver.IKPositionWeight = 0f;
+            dest = 0f;
         }
+        lookAtIK.solver.IKPositionWeight = Mathf.Lerp(lookAtIK.solver.IKPositionWeight, dest, Time.deltaTime*5);
     }
 
     private void UpdateTimers()

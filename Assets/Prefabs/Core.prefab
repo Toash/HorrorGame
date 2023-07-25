@@ -1379,7 +1379,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4720831310874647328
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2026,7 +2026,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5059587818891271834, guid: 1df9dc829de18554e84bb22042759f2c, type: 3}
       propertyPath: hasFluidRange
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 5059587818891271834, guid: 1df9dc829de18554e84bb22042759f2c, type: 3}
       propertyPath: noFluidIntensity
@@ -2086,15 +2086,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5490866157641888468, guid: 1df9dc829de18554e84bb22042759f2c, type: 3}
       propertyPath: cfuStatus
-      value: Checking for updates...
+      value: PSXEffects v1.18.4 - version ahead?!
       objectReference: {fileID: 0}
     - target: {fileID: 5490866157641888468, guid: 1df9dc829de18554e84bb22042759f2c, type: 3}
       propertyPath: customRes.x
-      value: 116
+      value: 208
       objectReference: {fileID: 0}
     - target: {fileID: 5490866157641888468, guid: 1df9dc829de18554e84bb22042759f2c, type: 3}
       propertyPath: customRes.y
-      value: 226
+      value: 117
       objectReference: {fileID: 0}
     - target: {fileID: 5890495707078251688, guid: 1df9dc829de18554e84bb22042759f2c, type: 3}
       propertyPath: blurImage

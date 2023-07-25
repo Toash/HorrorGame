@@ -3,8 +3,10 @@ using System.Collections;
 
 public class FlickeringLight : MonoBehaviour
 {
-    public float minIntensity = 0.2f;    // Minimum light intensity
-    public float maxIntensity = 1f;      // Maximum light intensity
+    
+    public float lightFlickerRange = .1f;
+    private float minIntensity;
+    private float maxIntensity;
     public float flickerSpeed = 5f;      // Speed of flickering
 
     private Light lightSource;
@@ -12,6 +14,9 @@ public class FlickeringLight : MonoBehaviour
 
     private void Start()
     {
+        minIntensity = lightSource.intensity - lightFlickerRange;
+        maxIntensity = lightSource.intensity + lightFlickerRange;
+
         lightSource = GetComponent<Light>();
         targetIntensity = Random.Range(minIntensity, maxIntensity);
         StartCoroutine(FlickerLight());

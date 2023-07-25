@@ -30,6 +30,7 @@ public class PlayerInteraction : MonoBehaviour
 
     public Camera cam;
     public float interactDistance = 3f;
+    public LayerMask wallMask;
     public LayerMask interactMask;
 
 
@@ -133,13 +134,20 @@ public class PlayerInteraction : MonoBehaviour
     }
     private void Interaction()
     {
-
-        if (currentInteractable == null && !handMoving) 
+        RaycastHit hit;
+        /*
+        if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, interactDistance, wallMask, QueryTriggerInteraction.Ignore))
+        {
+            //hit a wall
+            return;
+        }
+        */
+            if (currentInteractable == null && !handMoving) 
         {
             moveRightHandTargetBack();
         }
         
-        RaycastHit hit;
+
         if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, interactDistance, interactMask, QueryTriggerInteraction.Collide))
         {
             Interactable interactable = hit.transform.GetComponent<Interactable>();

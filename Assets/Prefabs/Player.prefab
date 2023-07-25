@@ -1214,6 +1214,9 @@ MonoBehaviour:
   interactKey: 323
   cam: {fileID: 5490866157641888465}
   interactDistance: 1.6
+  wallMask:
+    serializedVersion: 2
+    m_Bits: 1
   interactMask:
     serializedVersion: 2
     m_Bits: 64
@@ -1438,8 +1441,8 @@ GameObject:
   - component: {fileID: 5490866157641888464}
   - component: {fileID: 5490866157641888471}
   - component: {fileID: 5490866157641888468}
-  - component: {fileID: 3629774570135068281}
   - component: {fileID: 5890495707078251688}
+  - component: {fileID: 994998435796690831}
   m_Layer: 7
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1498,7 +1501,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 80375
+    m_Bits: 211447
   m_RenderingPath: 3
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -1554,14 +1557,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5490866157641888467}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2b416fbce5a38cc47a3a1e709f95f5e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   cfuStatus: PSXEffects v1.18.4 - version ahead?!
   sections: 01010100
-  customRes: {x: 116, y: 226}
+  customRes: {x: 156, y: 87}
   resolutionFactor: 4
   limitFramerate: -1
   skipFrames: 0
@@ -1569,18 +1572,18 @@ MonoBehaviour:
   clampAffine: 1
   affineBounds: 19.7
   polygonalDrawDistance: 0
-  vertexInaccuracy: 30
-  polygonInaccuracy: 2
-  colorDepth: 4
+  vertexInaccuracy: 0
+  polygonInaccuracy: 0
+  colorDepth: 5
   scanlines: 0
-  scanlineIntensity: 7
+  scanlineIntensity: 1
   ditherTexture: {fileID: 0}
-  dithering: 0
+  dithering: 1
   ditherThreshold: 1
   ditherIntensity: 1
   maxDarkness: 20
   subtractFade: 0
-  favorRed: 0
+  favorRed: 1
   worldSpaceSnapping: 0
   postProcessing: 1
   verticalScanlines: 0
@@ -1591,8 +1594,37 @@ MonoBehaviour:
   camSnapping: 0
   shadowType: 0
   ditherSky: 1
-  ditherType: 0
---- !u!114 &3629774570135068281
+  ditherType: 1
+--- !u!114 &5890495707078251688
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5490866157641888467}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfca03ef0fbc4da4bb85b25d38fa49b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+  bloodyFrame: {fileID: 0}
+  criticalHealth: 21
+  useBlurEffect: 1
+  blurImage: {fileID: 0}
+  blurDuration: 0.1
+  blurFadeSpeed: 10
+  pulseSound: {fileID: 0}
+  fadeAudios: 1
+  audiosToFade: []
+  audiosFadeVolume: 0.3
+  autoHeal: 1
+  healingSpeed: 20
+  autoHealTime: 2
+  deathEvent:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &994998435796690831
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1652,35 +1684,6 @@ MonoBehaviour:
   m_BeforeTransparentBundles: []
   m_BeforeStackBundles: []
   m_AfterStackBundles: []
---- !u!114 &5890495707078251688
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5490866157641888467}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bfca03ef0fbc4da4bb85b25d38fa49b2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 100
-  bloodyFrame: {fileID: 0}
-  criticalHealth: 21
-  useBlurEffect: 1
-  blurImage: {fileID: 0}
-  blurDuration: 0.1
-  blurFadeSpeed: 10
-  pulseSound: {fileID: 0}
-  fadeAudios: 1
-  audiosToFade: []
-  audiosFadeVolume: 0.3
-  autoHeal: 1
-  healingSpeed: 20
-  autoHealTime: 2
-  deathEvent:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1 &5490866157784166109
 GameObject:
   m_ObjectHideFlags: 0
@@ -1801,7 +1804,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5490866158831510723}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.272, y: -0.334, z: 0.618}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1821,9 +1824,9 @@ Light:
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
-  m_Color: {r: 1, g: 0.9986296, b: 0.9103774, a: 1}
-  m_Intensity: 0.46
-  m_Range: 4
+  m_Color: {r: 1, g: 0.84386474, b: 0.4669811, a: 1}
+  m_Intensity: 0.99
+  m_Range: 3.5
   m_SpotAngle: 35.1
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
@@ -1939,8 +1942,8 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   hasFluid: 1
-  hasFluidRange: 6
-  hasFluidIntensity: 0.6
+  hasFluidRange: 5
+  hasFluidIntensity: 1.3
   noFluidRange: 4
   noFluidIntensity: 0.45
   intensityRange: 0.1
